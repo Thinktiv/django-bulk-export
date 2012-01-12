@@ -13,7 +13,7 @@ def trigger(request,task_name):
     """
     Appends a task to the queue.
     """
-    result=execute.delay(task_name,request.REQUEST.copy()) #Support both GET/POST params
+    result=execute.delay(task_name,request.GET.copy(),request.get_full_path()) #Support both GET/POST params
     response = json.dumps({'task_id':result.task_id})
     logging.debug("Queued task : %s"%result.task_id)
     return HttpResponse(response, mimetype="application/json")
@@ -30,7 +30,12 @@ def status(request, task_id):
     if result:
         if(result.ready()):
             if(result.successful()):
-                req['status']=2 #succcessfull
+                result=result.get()
+                if isinstance(result,dict):
+                    req['status']=5
+                    req['error_message']=result['error_message']
+                else:
+                    req['status']=2 #succcessfull
         else:
             req={}
             req['status']=1 #waiting in queue
