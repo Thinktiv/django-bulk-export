@@ -22,7 +22,7 @@ def trigger(request,task_name,cache_func):
         response = json.dumps({'error_message':'You have too many sessions'})
         return HttpResponse(response, mimetype="application/json")
 
-    result=execute.delay(task_name,request.GET.copy(),request.get_full_path(),cache_func) #Support both GET/POST params
+    result=execute.delay(task_name,request.REQUEST.copy(),request.get_full_path(),cache_func) #Support both GET/POST params
     db_logging(request,result.task_id)
     response = json.dumps({'task_id':result.task_id})
     logging.debug("Queued task : %s"%result.task_id)
