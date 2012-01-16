@@ -4,7 +4,7 @@ var bulk_export_downloader_track={};
 var Downloader=
 {
 
-bulker_export:{params:{}},
+bulk_export:{params:{}},
 
 trigger:function(export_dict)
 {
@@ -62,12 +62,16 @@ trigger:function(export_dict)
                                             "type":"POST",
                                             "url":mylocation,
                                             "success":function(json){
+                                              if(json.task_id)
+                                              {
                                               bulk_export_downloader_track[json.task_id]='1';
-                                              Downloader.cancel_joshqueue(json.task_id,click_button,cancel_button);
+                                              Downloader.cancel_joshqueue(json.task_id,click_button,cancel_button,callback);
                                               $(click_button).hide();
                                               $(cancel_button).show();
                                               Downloader.check_status(json.task_id,click_button,cancel_button,period_start,period_int,callback,error_callback)
-
+                                              }
+                                              else
+                                              alert("Some error has occured please try after sometime");
 
                                             }
                                 });
@@ -101,6 +105,7 @@ check_status:function(task_id,click_button,cancel_button,period_start,period_int
                                                 }
                                                 else if(json.status=='4'){
                                                 alert("You are not authorized to check this task");
+                                                eval(callback);
                                                 }
                                                 else if(json.status=='2' && bulk_export_downloader_track[task_id]=='1')
                                                   Downloader.download(task_id,click_button,cancel_button,callback);
@@ -112,7 +117,7 @@ check_status:function(task_id,click_button,cancel_button,period_start,period_int
 
 
 
-cancel_joshqueue:function(task_id,click_button,cancel_button)
+cancel_joshqueue:function(task_id,click_button,cancel_button,callback)
 {
 
             $(cancel_button).click(function(){
@@ -125,6 +130,9 @@ cancel_joshqueue:function(task_id,click_button,cancel_button)
                                             bulk_export_downloader_track[task_id]='3';
                                             $(cancel_button).hide();
                                             $(click_button).show();
+                                            cancel_str='cancel_change_status(\''+task_id+'\')';
+                                            eval(callback)
+                                            setTimeout(cancel_str,7000)
 
                                          }
                                          });
@@ -183,8 +191,21 @@ post=post+postdata;
 }
 
 
+function cancel_change_status(task_id)
+{
+
+    $.ajax({
+            "datatype":'json',
+            "type":"POST",
+            "url":'/bulkexport/cancelstatus/'+task_id+'/',
+            "success":function(json){
+             console.log("Task cancelled");
+            }
+
+    });
 
 
+}
 
 
 
