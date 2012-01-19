@@ -3,9 +3,9 @@ import datetime
 
 class TaskAuthentication(models.Model):
     user_id=models.CharField(max_length=128)
-    task_id=models.CharField(max_length=128)
+    task_id=models.CharField(max_length=128,unique=True)
     filepath=models.CharField(max_length=200,blank=True, null=True)
-    status=models.IntegerField()
+    status=models.IntegerField(default=0)
     completion_date=models.DateTimeField('Task completion date',blank=True, null=True)
 
     def __unicode__(self):
