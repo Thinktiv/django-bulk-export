@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 import settings
 
 @login_required
-def trigger(request,task_name,cache_func,params={}):
+def trigger(request,task_name,cache_func='',params={}):
     """
     Appends a task to the queue.
     """

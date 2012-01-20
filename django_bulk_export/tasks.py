@@ -74,9 +74,9 @@ def get_file_path(url, params,cache_func):
 
 
 def default_get_cache_name(url):
-    filename=filename+ datetime.datetime.now().strftime("%m %d %Y %H %M %S")
-    filename=md5.new(url)
-    filename=filename.hexdigest()
+    filename = url + datetime.datetime.now().strftime("%m %d %Y %H %M %S")
+    filename = md5.new(filename)
+    filename = filename.hexdigest()
     return filename
 
 
