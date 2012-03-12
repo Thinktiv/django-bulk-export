@@ -9,47 +9,51 @@ import logging
 import settings
 from django_bulk_export.models import *
 from django.utils.encoding import smart_str
-from django_bulk_export.conf import BULK_EXPORT_DIR
+from django_bulk_export.constants import *
+
 @task
 def execute(task_name, params, url,cache_func,user_id):
 
     """
     Wrapper for the actual tasks. It gets the data from project task and writes to filesystem.
     """
-    user_auth=db_logging(user_id,execute.request.id)    
-    user_auth.status=1
-    user_auth.save()
+    task_log=get_or_create_tasklog(user_id,execute.request.id)
+    task_log.update_fields(status=TASK_RUNNING)
+    
     path = get_file_path(url, params,cache_func)
 
-    if(os.path.isfile(path)):
-        if(check_updated_file(path)):
-            user_auth.status=2            
-            user_auth.filepath=path
-            user_auth.completion_date=datetime.datetime.now()
-            user_auth.save()
+    if(os.path.isfile(path) and not is_file_expired(path)):
+        #Check if exported file alreasy exists and not expired
+        task_log.update_fields(status=TASK_SUCCESSFUL, filepath=path,
+            completion_date=datetime.datetime.now())
+        return path
+    else:        
+        task_func = get_task_func(task_name)
+        logging.debug("Executing task : %s"%task_name)
+        content_data = task_func(params)
+        
+        if isinstance(content_data,dict):  #Task failed due to some error
+             task_log.update_fields(status=TASK_FAILED)
+             return content_data
+        else:
+            writer=csv.writer(open(path,'wb'))
+            for cdata in content_data:
+                writer.writerow([smart_str(cd) if cd else None for cd in cdata])
+            #writer.close()
+            task_log.update_fields(status=TASK_SUCCESSFUL, filepath=path,
+                        completion_date=datetime.datetime.now())
             return path
-    #TODO: need to timeout this file caching.
 
+def get_task_func(task_name):
+    """
+        returns the task function.
+    """
     paths = task_name.split(".")
     package = ".".join(paths[0:-1])
     m = __import__ (package,fromlist=[paths[-1]])
     func = getattr(m,paths[-1])
-    logging.debug("Executing task : %s"%task_name)
-    content_data = func(params)
-    if isinstance(content_data,dict):
-         user_auth.status=5
-         user_auth.save()
-         return content_data
+    return func
 
-    writer=csv.writer(open(path,'wb'))
-    for cdata in content_data:
-        writer.writerow([smart_str(cd) if cd else None for cd in cdata])
-    user_auth.status=2
-    user_auth.filepath=path
-    user_auth.completion_date=datetime.datetime.now()
-    user_auth.save()
-    return path
-    
 def get_file_path(url, params,cache_func):
     """
         returns the file path to write the data into.
@@ -64,42 +68,32 @@ def get_file_path(url, params,cache_func):
         func=getattr(m,paths[-1])
         filename=func(url,params)
     else:
-        #filename=re.sub(r'sEcho=\d+&','',url)
-        #filename=re.sub(r'iDisplayLength=\d+','',filename)
-        #filename=re.sub(r'iDisplayStart=\d+','',filename)
-        filename=default_get_cache_name(url)
+        filename=get_default_cache_name(url)
     path=os.path.join(BULK_EXPORT_DIR, "%s.csv"%filename)
     return path
 
-
-
-def default_get_cache_name(url):
+def get_default_cache_name(url):
     filename = url + datetime.datetime.now().strftime("%m %d %Y %H %M %S")
     filename = md5.new(filename)
     filename = filename.hexdigest()
     return filename
 
 
-def check_updated_file(path):
+def is_file_expired(path):
     try:
         file_timestamp=os.path.getmtime(path)
         now_timestamp=time.mktime(datetime.datetime.now().timetuple())
         if (settings.BULKEXPORT_EXPIRES>(now_timestamp-file_timestamp)):
-            return True
+            return False
     except:
         pass
-    return False
+    return True
 
 
-def db_logging(user_id,task_id):
-    logging.debug("Client IP:%s"%user_id)
-    #print datetime.datetime.now()
-    #try:
-    #    user_auth=TaskAuthentication.objects.get(task_id=task_id)
-    #except:
-    #    try:
-    #        user_auth=TaskAuthentication.objects.create(user_id=user_id,task_id=task_id,status=0)
-    #    except:
-    #        pass
+def get_or_create_tasklog(user_id,task_id):
+    #logging.debug("Client ID:%s"%user_id)
     user_auth,created=TaskAuthentication.objects.get_or_create(user_id=user_id,task_id=task_id)
     return user_auth
+
+def get_user_id(request):    
+    return "%s"%request.user.pk
