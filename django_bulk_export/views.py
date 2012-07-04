@@ -10,7 +10,7 @@ from django_bulk_export.tasks import execute,get_or_create_tasklog, get_user_id
 from django_bulk_export.constants import *
 
 from django.contrib.auth.decorators import login_required
-import settings
+from django.conf import settings
 
 @login_required
 def trigger(request,task_name,cache_func='',params={}):

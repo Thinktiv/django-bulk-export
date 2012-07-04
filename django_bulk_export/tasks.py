@@ -6,7 +6,7 @@ import md5
 import csv
 import os
 import logging
-import settings
+from django.conf import settings
 from django_bulk_export.models import *
 from django.utils.encoding import smart_str
 from django_bulk_export.constants import *
