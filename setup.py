@@ -13,6 +13,7 @@ setup(
     packages=find_packages(exclude=['ez_setup']),
     include_package_data=True,
     zip_safe=True,
+    package_data={'django_bulk_export': ['static/**/*.*']},
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
