@@ -1,0 +1,1 @@
+This folder has been deprecated and the static folder has to be used everywhere necessary.
