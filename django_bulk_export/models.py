@@ -6,6 +6,7 @@ class TaskAuthentication(models.Model):
     user_id=models.CharField(max_length=128)
     task_id=models.CharField(max_length=128,unique=True)
     filepath=models.CharField(max_length=200,blank=True, null=True)
+    attachment_filename=models.CharField(max_length=200,blank=True, null=True)
     status=models.IntegerField(choices=STATUS_CHOICES, default=TASK_NEW)
     completion_date=models.DateTimeField('Task completion date',blank=True, null=True)
 

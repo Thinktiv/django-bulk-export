@@ -13,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 
 @login_required
-def trigger(request,task_name,cache_func='',params={}):
+def trigger(request,task_name,cache_func='',attachment_filename='',params={}):
     """
     Appends a task to the queue.
     """
@@ -27,7 +27,7 @@ def trigger(request,task_name,cache_func='',params={}):
     params.update(request.REQUEST.copy())
     
     result=execute.delay(task_name,params,request.get_full_path(),cache_func,get_user_id(request)) #Support both GET/POST params
-    get_or_create_tasklog(get_user_id(request),result.task_id)
+    get_or_create_tasklog(get_user_id(request),result.task_id,attachment_filename)
     
     if request.is_ajax():
         response = json.dumps({'task_id':result.task_id})
@@ -92,8 +92,9 @@ def download(request,task_id):
     task_log=TaskAuthentication.objects.get(task_id=task_id)
     if task_log.user_id==get_user_id(request):
         file_url=task_log.filepath
+        attachment_filename=task_log.attachment_filename
         #logging.debug("Sending file : %s"%file_url)
-        return sendfile(request,file_url, attachment=True)
+        return sendfile(request,file_url, attachment=True, attachment_filename="%s.csv"%attachment_filename)
     else:
         #logging.debug("Unauthorized user tries to download file")
         return HttpResponse("Sorry! You are not authorized to view this file")

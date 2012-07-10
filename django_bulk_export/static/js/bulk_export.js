@@ -99,7 +99,7 @@ function BulkExport(options)
 
 
     //trigger function
-    this.trigger=function(task_name,params,post,cache_func){
+    this.trigger=function(task_name,params,post,cache_func,attachment_filename){
         this.trigger_init();
         that = this;
         postdata='';
@@ -109,7 +109,7 @@ function BulkExport(options)
         }
 
         post=post+postdata;
-        var trigger_url=TRIGGER_URL+task_name+'/'+cache_func+'/?'+post;
+        var trigger_url=TRIGGER_URL+task_name+'/'+cache_func+'/'+attachment_filename+'/?'+post;
 
                     $.ajax({
                                 "datatype":'json',
