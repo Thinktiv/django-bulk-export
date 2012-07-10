@@ -94,7 +94,7 @@ def download(request,task_id):
         file_url=task_log.filepath
         attachment_filename=task_log.attachment_filename
         #logging.debug("Sending file : %s"%file_url)
-        return sendfile(request,file_url, attachment=True, attachment_filename="%s.csv"%attachment_filename)
+        return sendfile(request,file_url, attachment=True, attachment_filename="%s.csv"%attachment_filename if attachment_filename else None)
     else:
         #logging.debug("Unauthorized user tries to download file")
         return HttpResponse("Sorry! You are not authorized to view this file")

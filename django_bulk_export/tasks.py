@@ -92,7 +92,7 @@ def is_file_expired(path):
 
 def get_or_create_tasklog(user_id,task_id,attachment_filename=None):
     #logging.debug("Client ID:%s"%user_id)
-    defaults = {'attachment_filename':attachment_filename} if attachment_filename else None
+    defaults = {'attachment_filename':attachment_filename} if attachment_filename else {}
     user_auth,created=TaskAuthentication.objects.get_or_create(user_id=user_id,task_id=task_id,defaults=defaults)
     return user_auth
 
