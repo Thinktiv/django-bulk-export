@@ -12,12 +12,12 @@ from django.utils.encoding import smart_str
 from django_bulk_export.constants import *
 
 @task
-def execute(task_name, params, url,cache_func,user_id):
+def execute(task_name, params, url,cache_func,user_id,attachment_filename=''):
 
     """
     Wrapper for the actual tasks. It gets the data from project task and writes to filesystem.
     """
-    task_log=get_or_create_tasklog(user_id,execute.request.id)
+    task_log=get_or_create_tasklog(user_id,execute.request.id,attachment_filename)
     task_log.update_fields(status=TASK_RUNNING)
     
     path = get_file_path(url, params,cache_func)

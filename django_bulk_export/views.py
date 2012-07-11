@@ -26,7 +26,7 @@ def trigger(request,task_name,cache_func='',attachment_filename='',params={}):
     #update two dictionaries
     params.update(request.REQUEST.copy())
     
-    result=execute.delay(task_name,params,request.get_full_path(),cache_func,get_user_id(request)) #Support both GET/POST params
+    result=execute.delay(task_name,params,request.get_full_path(),cache_func,get_user_id(request),attachment_filename) #Support both GET/POST params
     get_or_create_tasklog(get_user_id(request),result.task_id,attachment_filename)
     
     if request.is_ajax():
