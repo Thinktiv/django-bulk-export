@@ -36,6 +36,9 @@ def execute(task_name, params, url,cache_func,user_id,attachment_filename=''):
              task_log.update_fields(status=TASK_FAILED)
              return content_data
         else:
+            dir_name = os.path.dirname(path)
+            if not os.path.exists(dir_name):
+                os.makedirs(dir_name)
             writer=csv.writer(open(path,'wb'))
             for cdata in content_data:
                 writer.writerow([smart_str(cd) if cd else None for cd in cdata])
